@@ -1,0 +1,44 @@
+    $prov       =  file_get_contents('http://dev.farizdotid.com/api/daerahindonesia/provinsi');
+    $all_prov    = json_decode($prov, true)["semuaprovinsi"];
+ 
+    
+    for($i = 0; $i<count($all_prov); $i++){
+        Provinsi::create([
+            'id'    => $all_prov[$i]["id"],
+            'nama'  => $all_prov[$i]["nama"]
+        ]);
+        echo "provinsi $i\n";
+        $kab   =  file_get_contents('http://dev.farizdotid.com/api/daerahindonesia/provinsi/'.$all_prov[$i]["id"].'/kabupaten');
+        $all_kab    = json_decode($kab, true)["kabupatens"];
+
+        for($a = 0; $a<count($all_kab); $a++){
+            Kabupaten::create([
+                'id'            => $all_kab[$a]["id"],
+                'nama'          => $all_kab[$a]["nama"],
+                'provinsi_id'   => $all_kab[$a]["id_prov"]
+            ]);
+            echo "kecamatan $a\n";
+            $kec   =  file_get_contents('http://dev.farizdotid.com/api/daerahindonesia/provinsi/kabupaten/'.$all_kab[$a]["id"].'/kecamatan');
+            $all_kec    = json_decode($kec, true)["kecamatans"];
+            for($b = 0; $b<count($all_kec); $b++){
+                Kecamatan::create([
+                    'id'             => $all_kec[$b]["id"],
+                    'nama'           => $all_kec[$b]["nama"],
+                    'kabupaten_id'   => $all_kec[$b]["id_kabupaten"]
+                ]);
+                echo "kabupaten $b\n";
+                $desa        =  file_get_contents('http://dev.farizdotid.com/api/daerahindonesia/provinsi/kabupaten/kecamatan/'. $all_kec[$b]["id"] .'/desa');
+                $all_desa    = json_decode($desa, true)["desas"];
+                for($c      = 0; $c<count($all_desa); $c++){
+                    Desa::create([
+                        'id'             => $all_desa[$c]["id"],
+                        'nama'           => $all_desa[$c]["nama"],
+                        'kecamatan_id'   => $all_desa[$c]["id_kecamatan"]
+                    ]);
+                echo "desa $c\n";
+                }
+            }
+        }
+        
+    }
+});
